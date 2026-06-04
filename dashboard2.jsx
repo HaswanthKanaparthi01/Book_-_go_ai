@@ -28,7 +28,7 @@ function Generator({ api }) {
   }, [trend && trend.id]);
 
   if (phase === 'idle' || !trend) return (
-    <div style={{ padding: 38 }}>
+    <div className="dash-content">
       <div className="card" style={{ padding: 40, textAlign: 'center' }}>
         <span style={{ width: 64, height: 64, borderRadius: 16, background: 'var(--green-soft)', display: 'grid', placeItems: 'center', margin: '0 auto 18px' }}><Icon name="sparkle" size={30} color="var(--green-ink)" /></span>
         <h3 className="display" style={{ fontSize: 26, margin: '0 0 8px' }}>Pick a trend to generate</h3>
@@ -46,8 +46,8 @@ function Generator({ api }) {
   );
 
   if (phase === 'loading' && trend) return (
-    <div style={{ padding: 38 }}>
-      <div className="card" style={{ padding: 0, overflow: 'hidden', maxWidth: 920, margin: '0 auto', display: 'grid', gridTemplateColumns: '1fr 1fr' }}>
+    <div className="dash-content">
+      <div className="card gen-loading-grid" style={{ padding: 0, overflow: 'hidden', maxWidth: 920, margin: '0 auto' }}>
         <div style={{ position: 'relative' }}><Photo scene={trend.scene} showLabel={false} style={{ height: '100%', minHeight: 420 }} />
           <div style={{ position: 'absolute', inset: 0, background: 'rgba(10,12,10,.35)', display: 'grid', placeItems: 'center' }}>
             <div style={{ width: 60, height: 60, border: '4px solid rgba(255,255,255,.3)', borderTopColor: '#fff', borderRadius: '50%', animation: 'spin 0.9s linear infinite' }} />
@@ -77,7 +77,7 @@ function Generator({ api }) {
   // done
   const setE = (k, v) => setEdit(e => ({ ...e, [k]: v }));
   return (
-    <div style={{ padding: 38 }}>
+    <div className="dash-content">
       <div style={{ display: 'grid', gridTemplateColumns: '380px 1fr', gap: 28, maxWidth: 1080, margin: '0 auto', alignItems: 'start' }} className="gen-grid">
         <div>
           <div className="eyebrow" style={{ marginBottom: 12 }}>Instagram preview</div>
@@ -129,8 +129,8 @@ function PostCard({ post, api }) {
   const { status } = post;
   return (
     <div className="card" style={{ overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
-      <div style={{ padding: 16, display: 'flex', gap: 16 }}>
-        <div style={{ width: 168, flex: 'none' }}><InstagramPost post={post} published={status === 'published'} /></div>
+      <div className="post-card-inner">
+        <div className="post-card-preview"><InstagramPost post={post} published={status === 'published'} /></div>
         <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column' }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10, marginBottom: 8 }}>
             <span className="chip" style={{ boxShadow: 'none', background: 'var(--paper)', fontSize: 12 }}><Icon name="trend" size={12} /> {post.topic}</span>
@@ -188,7 +188,7 @@ function ApprovalQueue({ api }) {
   const filters = [['all', 'All'], ['pending', 'Pending'], ['approved', 'Approved'], ['scheduled', 'Scheduled'], ['published', 'Published']];
   const list = api.posts.filter(p => filter === 'all' ? true : p.status === filter);
   return (
-    <div style={{ padding: 38 }}>
+    <div className="dash-content">
       <div style={{ display: 'flex', gap: 8, marginBottom: 22, flexWrap: 'wrap' }}>
         {filters.map(([id, label]) => {
           const on = filter === id; const n = id === 'all' ? api.posts.length : api.posts.filter(p => p.status === id).length;
@@ -198,7 +198,7 @@ function ApprovalQueue({ api }) {
       {list.length === 0 ? (
         <div className="card" style={{ padding: 48, textAlign: 'center', color: 'var(--ink-3)', fontWeight: 600 }}>Nothing here yet.</div>
       ) : (
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(440px, 1fr))', gap: 18 }}>
+        <div className="queue-grid">
           {list.map(p => <PostCard key={p.id} post={p} api={api} />)}
         </div>
       )}
@@ -209,7 +209,7 @@ function ApprovalQueue({ api }) {
 /* ---- Generated Posts (gallery) ---- */
 function GeneratedPosts({ api }) {
   return (
-    <div style={{ padding: 38 }}>
+    <div className="dash-content">
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))', gap: 20 }}>
         {api.posts.map(p => (
           <div key={p.id}>
@@ -229,7 +229,7 @@ function GeneratedPosts({ api }) {
 function ScheduledPosts({ api }) {
   const list = api.posts.filter(p => p.status === 'scheduled');
   return (
-    <div style={{ padding: 38 }}>
+    <div className="dash-content">
       {list.length === 0 ? (
         <div className="card" style={{ padding: 48, textAlign: 'center' }}>
           <Icon name="calendar" size={32} color="var(--ink-3)" />
@@ -238,7 +238,7 @@ function ScheduledPosts({ api }) {
           <button onClick={() => api.setTab('queue')} className="btn btn-green btn-sm" style={{ display: 'inline-flex' }}>Open approval queue</button>
         </div>
       ) : (
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(440px, 1fr))', gap: 18 }}>
+        <div className="queue-grid">
           {list.map(p => <PostCard key={p.id} post={p} api={api} />)}
         </div>
       )}
@@ -252,6 +252,12 @@ function Dashboard({ go, toast }) {
   const [tab, setTab] = useState('overview');
   const [draft, setDraft] = useState(null);
   const [scheduleId, setScheduleId] = useState(null);
+  const [navOpen, setNavOpen] = useState(false);
+
+  useEffect(() => {
+    document.body.classList.toggle('dash-nav-open', navOpen);
+    return () => document.body.classList.remove('dash-nav-open');
+  }, [navOpen]);
 
   const update = (id, patch) => setPosts(ps => ps.map(p => p.id === id ? { ...p, ...patch } : p));
   const approve = id => { update(id, { status: 'approved' }); toast('Post approved and ready for publishing'); };
@@ -281,10 +287,16 @@ function Dashboard({ go, toast }) {
   const scheduleTarget = posts.find(p => p.id === scheduleId);
 
   return (
-    <div style={{ display: 'flex', minHeight: '100vh', background: 'var(--paper)' }}>
-      <DashSidebar tab={tab} setTab={setTab} go={go} counts={counts} />
-      <main className="thin-scroll" style={{ flex: 1, minWidth: 0, height: '100vh', overflowY: 'auto', overflowX: 'hidden' }}>
-        <DashTopbar title={tt} subtitle={ts} action={tab === 'queue' ? <button onClick={() => setTab('trending')} className="btn btn-green"><Icon name="sparkle" size={16} color="#04391f" /> Create from trend</button> : tab === 'overview' ? <span className="chip" style={{ background: 'var(--green-soft)', color: 'var(--green-ink)', boxShadow: 'none', whiteSpace: 'nowrap' }}><span style={{ width: 7, height: 7, borderRadius: '50%', background: 'var(--green)' }} /> All systems live</span> : null} />
+    <div className={`dash-layout${navOpen ? ' dash-nav-open' : ''}`} style={{ background: 'var(--paper)' }}>
+      <button type="button" className={`dash-nav-backdrop${navOpen ? ' is-open' : ''}`} aria-label="Close menu" onClick={() => setNavOpen(false)} />
+      <DashSidebar tab={tab} setTab={setTab} go={go} counts={counts} onNavigate={() => setNavOpen(false)} />
+      <main className="thin-scroll dash-main">
+        <DashTopbar
+          title={tt}
+          subtitle={ts}
+          onMenuOpen={() => setNavOpen(true)}
+          action={tab === 'queue' ? <button onClick={() => setTab('trending')} className="btn btn-green"><Icon name="sparkle" size={16} color="#04391f" /> Create from trend</button> : tab === 'overview' ? <span className="chip" style={{ background: 'var(--green-soft)', color: 'var(--green-ink)', boxShadow: 'none' }}><span style={{ width: 7, height: 7, borderRadius: '50%', background: 'var(--green)' }} /> All systems live</span> : null}
+        />
         {tab === 'overview' && <Overview api={api} setTab={setTab} />}
         {tab === 'trending' && <TrendingFeed api={api} />}
         {tab === 'agents' && <AIAgents api={api} />}

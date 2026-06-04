@@ -45,7 +45,7 @@ function AIAgents({ api }) {
   const onlineCount = AGENTS.filter(a => a.status === 'ONLINE' || a.status === 'ACTIVE').length;
 
   return (
-    <div style={{ padding: 38 }}>
+    <div className="dash-content">
       {/* architecture banner */}
       <div className="card" style={{ padding: '22px 26px', marginBottom: 24, display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 20, flexWrap: 'wrap', background: 'var(--ink)', color: '#fff' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>

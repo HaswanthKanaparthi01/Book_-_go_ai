@@ -19,7 +19,7 @@ function ScheduleModal({ post, onClose, onConfirm }) {
         </div>
         <h3 className="display" style={{ fontSize: 26, margin: '0 0 4px' }}>{post.topic}</h3>
         <p style={{ color: 'var(--ink-2)', fontWeight: 500, fontSize: 14.5, margin: '0 0 22px' }}>Choose when this goes live on Instagram.</p>
-        <div style={{ display: 'flex', gap: 14, marginBottom: 24 }}>
+        <div className="schedule-fields">
           <div className="field" style={{ flex: 1 }}><label>Publish date</label><input className="input" type="date" value={date} onChange={e => setDate(e.target.value)} /></div>
           <div className="field" style={{ flex: 1 }}><label>Publish time</label><input className="input" type="time" value={time} onChange={e => setTime(e.target.value)} /></div>
         </div>
@@ -40,7 +40,7 @@ function fmtSched(date, time) {
 }
 
 /* ---- Sidebar ---- */
-function DashSidebar({ tab, setTab, go, counts }) {
+function DashSidebar({ tab, setTab, go, counts, onNavigate }) {
   const items = [
     ['overview', 'grid', 'Overview'],
     ['trending', 'trend', 'Trending Feed'],
@@ -51,8 +51,13 @@ function DashSidebar({ tab, setTab, go, counts }) {
     ['monitoring', 'pulse', 'Live Monitoring'],
   ];
   return (
-    <aside style={{ width: 256, flex: 'none', background: 'var(--ink)', color: '#fff', display: 'flex', flexDirection: 'column', position: 'sticky', top: 0, height: '100vh' }} className="dash-side">
-      <div style={{ padding: '22px 22px 16px' }}><Logo light size={20} onClick={() => go('home')} /></div>
+    <aside style={{ width: 256, flex: 'none', background: 'var(--ink)', color: '#fff', display: 'flex', flexDirection: 'column', position: 'sticky', top: 0, height: '100vh' }} className="dash-side" aria-label="Dashboard navigation">
+      <div style={{ padding: '22px 22px 16px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12 }}>
+        <Logo light size={20} onClick={() => { onNavigate?.(); go('home'); }} />
+        <button type="button" className="dash-menu-btn dash-side-close" onClick={onNavigate} aria-label="Close menu" style={{ display: 'grid', background: 'rgba(255,255,255,.1)', boxShadow: 'none' }}>
+          <Icon name="x" size={18} color="#fff" />
+        </button>
+      </div>
       <div style={{ padding: '0 14px 14px' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 9, background: 'rgba(255,255,255,.07)', borderRadius: 12, padding: '11px 13px' }}>
           <span style={{ position: 'relative', width: 9, height: 9 }}>
@@ -66,7 +71,7 @@ function DashSidebar({ tab, setTab, go, counts }) {
         {items.map(([id, ic, label, badge]) => {
           const on = tab === id;
           return (
-            <button key={id} onClick={() => setTab(id)} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '11px 13px', borderRadius: 11, background: on ? '#fff' : 'transparent', color: on ? 'var(--ink)' : 'rgba(255,255,255,.72)', fontWeight: 700, fontSize: 14.5, transition: 'all .15s', width: '100%', textAlign: 'left' }}>
+            <button key={id} onClick={() => { setTab(id); onNavigate?.(); }} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '11px 13px', borderRadius: 11, background: on ? '#fff' : 'transparent', color: on ? 'var(--ink)' : 'rgba(255,255,255,.72)', fontWeight: 700, fontSize: 14.5, transition: 'all .15s', width: '100%', textAlign: 'left' }}>
               <Icon name={ic} size={18} color={on ? 'var(--green-ink)' : 'rgba(255,255,255,.6)'} />
               <span style={{ flex: 1 }}>{label}</span>
               {badge > 0 && <span style={{ background: on ? 'var(--green)' : 'var(--green)', color: '#04391f', fontWeight: 800, fontSize: 12, minWidth: 21, height: 21, borderRadius: 999, display: 'grid', placeItems: 'center', padding: '0 6px' }}>{badge}</span>}
@@ -84,14 +89,17 @@ function DashSidebar({ tab, setTab, go, counts }) {
 }
 
 /* ---- Topbar ---- */
-function DashTopbar({ title, subtitle, action }) {
+function DashTopbar({ title, subtitle, action, onMenuOpen }) {
   return (
-    <div style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', gap: 20, padding: '30px 38px 26px', borderBottom: '1px solid var(--line)', position: 'sticky', top: 0, background: 'rgba(255,255,255,.9)', backdropFilter: 'blur(10px)', zIndex: 20 }}>
-      <div>
-        <h1 className="display" style={{ fontSize: 'clamp(28px,3vw,40px)', margin: 0, whiteSpace: 'nowrap' }}>{title}</h1>
-        {subtitle && <p style={{ margin: '6px 0 0', color: 'var(--ink-2)', fontWeight: 500, fontSize: 15 }}>{subtitle}</p>}
+    <div className="dash-topbar">
+      <button type="button" className="dash-menu-btn" onClick={onMenuOpen} aria-label="Open menu">
+        <Icon name="grid" size={20} color="var(--ink)" />
+      </button>
+      <div className="dash-topbar-head">
+        <h1 className="display dash-topbar-title">{title}</h1>
+        {subtitle && <p style={{ margin: '6px 0 0', color: 'var(--ink-2)', fontWeight: 500, fontSize: 15, lineHeight: 1.4 }}>{subtitle}</p>}
       </div>
-      {action}
+      {action && <div className="dash-topbar-actions">{action}</div>}
     </div>
   );
 }
@@ -112,7 +120,7 @@ function Overview({ api, setTab }) {
     { k: 'Est. reach', v: '128k', ic: 'globe', accent: 'var(--ink)', bg: 'var(--paper)', delta: '+18% vs last 30d' },
   ];
   return (
-    <div style={{ padding: 38 }}>
+    <div className="dash-content">
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: 16, marginBottom: 22 }} className="grid-4">
         {stats.map(s => (
           <div key={s.k} className="card" style={{ padding: 22 }}>
@@ -133,14 +141,14 @@ function Overview({ api, setTab }) {
             <h3 className="display" style={{ fontSize: 22, margin: 0 }}>Automation pipeline</h3>
             <button onClick={() => setTab('generator')} className="btn btn-green btn-sm"><Icon name="sparkle" size={14} color="#04391f" /> Generate</button>
           </div>
-          <div style={{ display: 'flex', alignItems: 'stretch', gap: 0 }}>
+          <div className="pipeline-row">
             {[['trend', 'Trend detected', 'var(--yellow)'], ['sparkle', 'AI generates', 'var(--green)'], ['queue', 'Pending review', '#caa400'], ['check', 'Approved', 'var(--green)'], ['calendar', 'Scheduled', 'var(--blue)'], ['send', 'Published', 'var(--ink)']].map(([ic, t, col], i, arr) => (
               <React.Fragment key={t}>
-                <div style={{ flex: 1, textAlign: 'center' }}>
+                <div className="pipeline-step" style={{ flex: 1, textAlign: 'center' }}>
                   <div style={{ width: 46, height: 46, borderRadius: '50%', background: '#fff', boxShadow: 'inset 0 0 0 2px var(--line)', display: 'grid', placeItems: 'center', margin: '0 auto 10px' }}><Icon name={ic} size={20} color={col === 'var(--ink)' ? 'var(--ink)' : col} /></div>
                   <div style={{ fontWeight: 700, fontSize: 12, lineHeight: 1.2 }}>{t}</div>
                 </div>
-                {i < arr.length - 1 && <div style={{ flex: '0 0 18px', alignSelf: 'flex-start', marginTop: 22, color: 'var(--line-2)' }}><Icon name="chevron" size={16} color="var(--line-2)" /></div>}
+                {i < arr.length - 1 && <div className="wf-arrow"><Icon name="chevron" size={16} color="var(--line-2)" /></div>}
               </React.Fragment>
             ))}
           </div>
@@ -198,7 +206,7 @@ function TrendingFeed({ api }) {
   const filtered = filter === 'all' ? TRENDS : TRENDS.filter(t => t.platform === filter);
 
   return (
-    <div style={{ padding: 38 }}>
+    <div className="dash-content">
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 12, marginBottom: 18 }}>
         <div>
           <div style={{ fontSize: 13, fontWeight: 800, color: 'var(--ink-3)', marginBottom: 6 }}>Trending insights</div>
@@ -266,7 +274,7 @@ function LiveMonitoring({ api }) {
   }, []);
 
   return (
-    <div style={{ padding: 38 }}>
+    <div className="dash-content">
       <div style={{ display: 'grid', gridTemplateColumns: '1.25fr 320px', gap: 20 }} className="ov-grid">
         <div className="card" style={{ padding: 26 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 20 }}>
@@ -293,7 +301,7 @@ function LiveMonitoring({ api }) {
           </div>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
             {feed.map(f => (
-              <div key={f.id} className="fade-up" style={{ display: 'flex', alignItems: 'center', gap: 14, padding: 14, borderRadius: 16, background: 'var(--paper)' }}>
+              <div key={f.id} className="fade-up monitor-feed-item">
                 <span style={{ width: 46, height: 46, borderRadius: 12, overflow: 'hidden', flex: 'none' }}><Photo scene={f.scene} showLabel={false} style={{ height: '100%' }} /></span>
                 <div style={{ flex: 1, minWidth: 0 }}>
                   <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
@@ -302,7 +310,7 @@ function LiveMonitoring({ api }) {
                   </div>
                   <div style={{ color: 'var(--ink-2)', fontWeight: 500, fontSize: 13.5, marginTop: 6, lineHeight: 1.5 }}>{f.txt}</div>
                 </div>
-                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 6, flex: 'none' }}>
+                <div className="monitor-feed-actions">
                   <span style={{ color: 'var(--ink-3)', fontWeight: 700, fontSize: 12 }}>{f.ago}</span>
                   <button type="button" onClick={() => api.createPost({ id: 'monitor-' + f.id, topic: f.topic, scene: f.scene })} className="btn btn-ghost btn-sm">Create post</button>
                 </div>
@@ -338,7 +346,7 @@ function Analytics({ api }) {
   const top = api.posts.filter(p => p.status === 'published' || p.status === 'approved').slice(0, 3);
   const metrics = [['Total reach', '128.4k', '+18%'], ['Engagement rate', '6.8%', '+1.2pt'], ['Saves', '9.3k', '+24%'], ['Profile visits', '14.1k', '+11%']];
   return (
-    <div style={{ padding: 38 }}>
+    <div className="dash-content">
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: 16, marginBottom: 22 }} className="grid-4">
         {metrics.map(([k, v, d]) => (
           <div key={k} className="card" style={{ padding: 22 }}>
